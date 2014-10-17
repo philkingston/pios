@@ -1,0 +1,4 @@
+config BR2_PACKAGE_QUINT
+	bool "quint"
+	help
+          Shader-testing environment for Qt5

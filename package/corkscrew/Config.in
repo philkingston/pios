@@ -1,0 +1,10 @@
+config BR2_PACKAGE_CORKSCREW
+	bool "corkscrew"
+	#depends on BR2_INSTALL_LIBSTDCPP
+	#select BR2_PACKAGE_FONTCONFIG
+	#select BR2_PACKAGE_XLIB_LIBX11 if BR2_PACKAGE_XORG7
+	#select BR2_PACKAGE_XLIB_LIBXEXT if BR2_PACKAGE_XORG7
+	help
+	   Corkscrew is a tool for tunneling SSH through HTTP proxies.
+
+	   http://www.agroman.net/corkscrew/

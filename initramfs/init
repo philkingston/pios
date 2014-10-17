@@ -1,0 +1,49 @@
+#!/bin/sh
+mount -t devtmpfs none /dev
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+mount -o noatime,rw -t ext4 /dev/mmcblk0p3 /cache
+if [ $? = 0 ]; then
+	# cache folder exists
+	if [ -s /cache/mmcblk0p1.img ] || [ -s /cache/mmcblk0p2.img ]; then
+		if [ -s /cache/mmcblk0p1.img ]; then
+			# apply a boot image update
+
+			# copy the config files first
+			mount -o ro -t vfat /dev/mmcblk0p1 /boot
+			rm -Rf /cache/config
+			rm -f /cache/config.txt
+			cp -R /boot/config /cache/
+			cp -R /boot/config.txt /cache/
+			umount /boot
+
+			# flash the image to the card
+			dd if=/cache/mmcblk0p1.img of=/dev/mmcblk0p1 bs=1M
+
+			# put the config files back
+			mount -o noatime,rw -t vfat /dev/mmcblk0p1 /boot
+			cp -R /cache/config /boot/
+			cp /cache/config.txt /boot/
+			rm -Rf /cache/config
+			rm -f /cache/config.txt
+			unmount /boot
+
+			# remove the image (so we don't trigger this on reboot)
+			rm /cache/mmcblk0p1.img
+		fi;
+		if [ -s /cache/mmcblk0p2.img ]; then
+			# apply a root image update
+			dd if=/cache/mmcblk0p2.img of=/dev/mmcblk0p2 bs=1M
+			rm /cache/mmcblk0p2.img
+       		fi;
+		sync
+		umount /cache
+		exit
+	fi
+fi
+umount /cache
+/bin/mountfs -h sha1 -d block -s 512 -c aes-xts-plain64 open --type plain /dev/mmcblk0p2 root
+mount -o noatime,ro -t ext2 /dev/mapper/root /rootfs
+umount /sys
+umount /proc
+exec switch_root /rootfs /init

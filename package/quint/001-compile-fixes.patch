@@ -1,0 +1,60 @@
+--- a/main.cpp
++++ b/main.cpp
+@@ -24,14 +24,15 @@
+ 
+ #include <QtCore/qdebug.h>
+ #include <QtCore/qabstractanimation.h>
+-#include <QtDeclarative/qdeclarative.h>
+-#include <QtDeclarative/qdeclarativeengine.h>
+-#include <QtDeclarative/qdeclarativecomponent.h>
++#include <QtQml/qqml.h>
++#include <QtQml/qqmlengine.h>
++#include <QtQml/qqmlcomponent.h>
+ #include <QtCore/qdir.h>
+-#include <QtDeclarative/qdeclarativecontext.h>
++#include <QtQml/qqmlcontext.h>
+ 
+ #include <QGuiApplication>
+ #include <QtGui/QCursor>
++#include <QtGui/qpa/qplatformwindow.h>
+ 
+ #include <QtCore/qmath.h>
+ 
+@@ -43,7 +44,7 @@
+ {
+     QGuiApplication app(argc, argv);
+     QWindow *window = 0;
+-    QDeclarativeEngine *engine = 0;
++    QQmlEngine *engine = 0;
+     CodeModel *model = 0;
+     model = new CodeModel();
+ 
+@@ -63,7 +64,8 @@
+     QObject::connect(engine, SIGNAL(quit()), QCoreApplication::instance(), SLOT(quit()));
+ 
+     //window->setWindowFlags(Qt::Window | Qt::WindowSystemMenuHint | Qt::WindowTitleHint | Qt::WindowMinMaxButtonsHint | Qt::WindowCloseButtonHint);
+-    window->setWindowFlags(Qt::Window);
++    //Causes segfault now
++    //window->handle()->setWindowFlags(Qt::Window);
+     //window->setMouseGrabEnabled(true);
+     app.setOverrideCursor( QCursor( Qt::BlankCursor ) );
+     //window->showFullScreen();
+--- a/quint.pro
++++ b/quint.pro
+@@ -1,4 +1,4 @@
+-QT += declarative declarative-private quick
++QT += quick gui-private
+ 
+ rpi: DEFINES += NO_QUICKVIEW
+ 
+--- a/quint.qml
++++ b/quint.qml
+@@ -102,7 +102,7 @@
+         MediaPlayer {
+             id: mp
+             source: "big_buck_bunny_720p_surround.avi"
+-            playing: false
++            //playing: false
+             Component.onCompleted: {
+                 playTimer.start();
+             }

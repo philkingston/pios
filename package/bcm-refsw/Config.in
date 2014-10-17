@@ -1,0 +1,66 @@
+menuconfig BR2_PACKAGE_BCM_REFSW
+	bool "bcm-refsw"
+	depends on BR2_mipsel
+	depends on BR2_INSTALL_LIBSTDCPP
+	depends on BR2_LARGEFILE
+	depends on BR2_TOOLCHAIN_HAS_THREADS
+	select BR2_PACKAGE_HAS_OPENGL_EGL
+	select BR2_PACKAGE_HAS_OPENGL_ES
+	select BR2_PACKAGE_HAS_OPENVG
+	help
+	  Broadcom Reference Software contains the necessary library to use the
+	  VideoCore driver.
+
+	  Includes source for the MIPS side code to interface to:
+	  nexus, EGL, GLESv2 and OpenVG.
+
+	  http://www.broadcom.com/
+
+if BR2_PACKAGE_BCM_REFSW
+
+config BR2_PACKAGE_PROVIDES_OPENGL_EGL
+	default "bcm-refsw"
+
+config BR2_PACKAGE_PROVIDES_OPENGL_ES
+	default "bcm-refsw"
+
+config BR2_PACKAGE_PROVIDES_OPENVG
+	default "bcm-refsw"
+
+config BR2_PACKAGE_BCM_REFSW_PLATFORM
+	string "Broadcom target platform"
+
+config BR2_PACKAGE_BCM_REFSW_PLATFORM_REV
+	string "Broadcom target platform revision"
+
+choice
+        prompt "Broadcom reference software version"
+
+config BR2_BCM_REFSW_VERSION_V12
+        bool "V12"
+        help
+	   Use official releas from Broadcom labeled V20121210
+
+config BR2_BCM_REFSW_VERSION_V13
+        bool "V13"
+        help
+	   Use official releas from Broadcom labeled V20131218
+
+config BR2_BCM_REFSW_CUSTOM
+        bool "Custom"
+        help
+          use a custom release, at the location indicated by the 
+          Custom Nexus tar ball
+
+endchoice
+
+config BR2_BCMREFSW_CUSTOM_LOCATION
+        string "Location of the Broadcom reference software tarball"
+        depends on BR2_BCM_REFSW_CUSTOM
+
+
+endif
+
+comment "bcm-refsw needs a toolchain w/ C++, largefile, threads"
+	depends on BR2_mipsel
+	depends on !BR2_INSTALL_LIBSTDCPP || !BR2_LARGEFILE || !BR2_TOOLCHAIN_HAS_THREADS

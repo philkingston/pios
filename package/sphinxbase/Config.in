@@ -1,0 +1,7 @@
+config BR2_PACKAGE_SPHINXBASE
+	bool "sphinxbase"
+	help
+	  Sphinx Voice Recognition Software.
+
+	  http://cmusphinx.sourceforge.net
+

@@ -1,0 +1,7 @@
+config BR2_PACKAGE_ESPEAK
+	bool "espeak"
+	depends on BR2_PACKAGE_PORTAUDIO
+	help
+	  Text-To-Speech utility.
+
+	  http://espeak.sourceforge.net

@@ -1,0 +1,7 @@
+config BR2_PACKAGE_VIEW20
+	bool "view20"
+	depends on BR2_PACKAGE_LIBV4L
+	depends on BR2_PACKAGE_FFMPEG
+	help
+          tec20 application for starting a QML file with
+          accelerated video playback
