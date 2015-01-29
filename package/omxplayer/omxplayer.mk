@@ -1,5 +1,5 @@
-OMXPLAYER_VERSION = fcfb7911af3b81c84e1da920018fb9e2ae24d57e
-OMXPLAYER_SITE = git://github.com/huceke/omxplayer.git
+OMXPLAYER_VERSION = 98982dfd9721d77432dd70a799e992608b35a225
+OMXPLAYER_SITE = git://github.com/popcornmix/omxplayer.git
 OMXPLAYER_SITE_METHOD = git
 OMXPLAYER_DEPENDENCIES = ffmpeg freetype boost pcre rpi-userland
 

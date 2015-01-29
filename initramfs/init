@@ -1,43 +1,69 @@
 #!/bin/sh
 mount -t devtmpfs none /dev
+mknod /dev/console c 5 1
 mount -t proc proc /proc
 mount -t sysfs sysfs /sys
 mount -o noatime,rw -t ext4 /dev/mmcblk0p3 /cache
 if [ $? = 0 ]; then
 	# cache folder exists
-	if [ -s /cache/mmcblk0p1.img ] || [ -s /cache/mmcblk0p2.img ]; then
-		if [ -s /cache/mmcblk0p1.img ]; then
+	if ([ -s /cache/mmcblk0p1.img ] && [ -s /cache/mmcblk0p1.chk ]) || ([ -s /cache/mmcblk0p2.img ] && [ -s /cache/mmcblk0p2.chk ]); then
+		fbset -xres 1920 -yres 1080 -depth 16
+
+		if [ -s /cache/mmcblk0p1.img ] && [ -s /cache/mmcblk0p1.chk ]; then
 			# apply a boot image update
 
-			# copy the config files first
-			mount -o ro -t vfat /dev/mmcblk0p1 /boot
-			rm -Rf /cache/config
-			rm -f /cache/config.txt
-			cp -R /boot/config /cache/
-			cp -R /boot/config.txt /cache/
-			umount /boot
+			# verify checksum
+			cksum /cache/mmcblk0p1.img | cut -f1,2 -d' ' | cmp /cache/mmcblk0p1.chk -
+			if [ $? == 0 ]; then
+				dd if=boot.fb of=/dev/fb0
+				sleep 1
 
-			# flash the image to the card
-			dd if=/cache/mmcblk0p1.img of=/dev/mmcblk0p1 bs=1M
-
-			# put the config files back
-			mount -o noatime,rw -t vfat /dev/mmcblk0p1 /boot
-			cp -R /cache/config /boot/
-			cp /cache/config.txt /boot/
-			rm -Rf /cache/config
-			rm -f /cache/config.txt
-			unmount /boot
+				# copy the config files first
+				mount -o ro -t vfat /dev/mmcblk0p1 /boot
+				rm -Rf /cache/config
+				rm -f /cache/config.txt
+				cp -R /boot/config /cache/
+				cp -R /boot/config.txt /cache/
+				umount /boot
+	
+				# flash the image to the card
+				dd if=/cache/mmcblk0p1.img of=/dev/mmcblk0p1 bs=1M
+	
+				# put the config files back
+				mount -o noatime,rw -t vfat /dev/mmcblk0p1 /boot
+				cp -R /cache/config /boot/
+				cp /cache/config.txt /boot/
+				rm -Rf /cache/config
+				rm -f /cache/config.txt
+				unmount /boot
+			fi;
 
 			# remove the image (so we don't trigger this on reboot)
 			rm /cache/mmcblk0p1.img
+			rm /cache/mmcblk0p1.chk
 		fi;
-		if [ -s /cache/mmcblk0p2.img ]; then
-			# apply a root image update
-			dd if=/cache/mmcblk0p2.img of=/dev/mmcblk0p2 bs=1M
+		if [ -s /cache/mmcblk0p2.img ] && [ -s /cache/mmcblk0p2.chk ]; then
+			# verify checksum
+       	                cksum /cache/mmcblk0p2.img | cut -f1,2 -d' ' | cmp /cache/mmcblk0p2.chk -
+       	                if [ $? == 0 ]; then
+				# apply a root image update
+				dd if=filesystem.fb > /dev/fb0
+				sleep 1
+
+				# verify checksum
+				# apply image over filesystem
+				dd if=/cache/mmcblk0p2.img of=/dev/mmcblk0p2 bs=1M
+			fi;
+
+			# remove image and checksum
 			rm /cache/mmcblk0p2.img
+			rm /cache/mmcblk0p2.chk
        		fi;
 		sync
 		umount /cache
+		# kernel is configured to reset on a kernel panic, which an exit will trigger
+		dd if=reboot.fb of=/dev/fb0
+		sleep 1 
 		exit
 	fi
 fi
