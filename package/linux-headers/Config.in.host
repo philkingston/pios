@@ -57,6 +57,9 @@ choice
         config BR2_KERNEL_HEADERS_3_14
                 bool "Linux 3.14.x kernel headers"
 
+        config BR2_KERNEL_HEADERS_3_18
+                bool "Linux 3.18.x kernel headers"
+
 	config BR2_KERNEL_HEADERS_VERSION
 		bool "Manually specified Linux version"
 
@@ -85,5 +88,6 @@ config BR2_DEFAULT_KERNEL_HEADERS
 	default "3.12.26"	if BR2_KERNEL_HEADERS_3_12
 	default "3.13.5"	if BR2_KERNEL_HEADERS_3_13
 	default "3.14.6"	if BR2_KERNEL_HEADERS_3_14
+	default "3.18.12"	if BR2_KERNEL_HEADERS_3_18
 	default "2.6"		if BR2_KERNEL_HEADERS_SNAP
 	default BR2_DEFAULT_KERNEL_VERSION if BR2_KERNEL_HEADERS_VERSION

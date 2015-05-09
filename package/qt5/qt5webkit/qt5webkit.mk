@@ -4,9 +4,13 @@
 #
 ################################################################################
 
-QT5WEBKIT_VERSION = $(QT5_VERSION)
-QT5WEBKIT_SITE = $(QT5_SITE)
-QT5WEBKIT_SOURCE = qtwebkit-opensource-src-$(QT5WEBKIT_VERSION).tar.xz
+QT5WEBKIT_VERSION = acb5adb43d97b2a5e30998fb20a50657f168b14a
+ifeq ($(BR2_QT5WEBKIT_USE_WEBRTC),y)
+QT5WEBKIT_VERSION = de07f58fb904c81794af37238e2c0c2989a59898
+endif
+
+QT5WEBKIT_SITE = $(call github,Metrological,qtwebkit,$(QT5WEBKIT_VERSION))
+
 QT5WEBKIT_DEPENDENCIES = qt5base sqlite host-ruby host-gperf host-bison host-flex
 QT5WEBKIT_INSTALL_STAGING = YES
 
@@ -24,99 +28,171 @@ ifeq ($(BR2_PACKAGE_QT5BASE_XCB),y)
 QT5WEBKIT_DEPENDENCIES += xlib_libXext xlib_libXrender
 endif
 
+QT5WEBKIT_CONFIG = CONFIG+=silent
+QT5WEBKIT_MAKE_ENV = $(TARGET_MAKE_ENV) QMAKEPATH=$(@D)/Tools/qmake/
+
 ifeq ($(BR2_PACKAGE_QT5DECLARATIVE),y)
 QT5WEBKIT_DEPENDENCIES += qt5declarative
+else
+QT5WEBKIT_CONFIG += \
+	CONFIG-=webkit2
 endif
 
-QT5WEBKIT_CONFIG = 
+ifeq ($(BR2_PACKAGE_WEBP),y)
+QT5WEBKIT_DEPENDENCIES += webp
+endif
+
+ifeq ($(BR2_PACKAGE_LIBXSLT),y)
+QT5WEBKIT_DEPENDENCIES += libxslt
+endif
 
 ifeq ($(BR2_ENABLE_DEBUG),y)
-	QT5WEBKIT_DEBUG_CONFIG = "CONFIG+=debug"
-	QT5WEBKIT_DEBUG_CONFIG += "CONFIG-=release"
+QT5WEBKIT_BUILDDIR = $(@D)/debug
+QT5WEBKIT_CONFIG += \
+	CONFIG+=debug \
+	CONFIG-=release
 else
-	QT5WEBKIT_DEBUG_CONFIG = "CONFIG-=debug"
-	QT5WEBKIT_DEBUG_CONFIG += "CONFIG+=release"
-endif
-
-ifeq ($(BR2_USE_GSTREAMER),y)
-	QT5WEBKIT_GST_CONFIG = \
-		WEBKIT_CONFIG+=video \
-		WEBKIT_CONFIG+=use_gstreamer
-endif
-
-ifeq ($(BR2_USE_DEPRECATED_GSTREAMER),y)
-	QT5WEBKIT_GST_CONFIG = \
-		WEBKIT_CONFIG+=video \
-		WEBKIT_CONFIG+=use_gstreamer010
-endif
-
-ifeq ($(BR2_PACKAGE_MINIBROWSER),y)
-	QT5WEBKIT_POST_BUILD_HOOKS += QT5WEBKIT_BUILD_MINIBROWSER
-endif
-
-ifeq ($(BR2_PACKAGE_TESTBROWSER),y)
-	QT5WEBKIT_POST_BUILD_HOOKS += QT5WEBKIT_BUILD_TESTBROWSER
-endif
-
-ifeq ($(BR2_PACKAGE_DUMPRENDERTREE), y)
-	QT5WEBKIT_POST_BUILD_HOOKS += QT5WEBKIT_BUILD_DUMPRENDERTREE
+QT5WEBKIT_BUILDDIR = $(@D)/release
+QT5WEBKIT_CONFIG += \
+	CONFIG-=debug \
+	CONFIG+=release
 endif
 
 ifeq ($(findstring y,$(BR2_PACKAGE_MINIBROWSER)$(BR2_PACKAGE_TESTBROWSER)$(BR2_PACKAGE_DUMPRENDERTREE)),y) 
-# CONFIG-=production_build enables the build of certain features/functionality required by some tools
-	QT5WEBKIT_TOOLS_CONFIG += "CONFIG-=production_build"
+QT5WEBKIT_CONFIG += \
+	CONFIG-=production_build \
+	WEBKIT_CONFIG-=build_tests \
+	WEBKIT_CONFIG-=build_drt \
+	WEBKIT_CONFIG-=build_wtr \
+	WEBKIT_CONFIG-=build_imagediff \
+	WEBKIT_CONFIG-=build_testbrowser \
+	WEBKIT_CONFIG-=build_minibrowser \
+	WEBKIT_CONFIG-=build_imagediff \
+	WEBKIT_CONFIG-=build_qttestsupport
 endif
 
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=page_visibility_api \
+	WEBKIT_CONFIG+=css_variables \
+	WEBKIT_CONFIG+=css_image_orientation \
+	WEBKIT_CONFIG+=css3_text \
+	WEBKIT_CONFIG+=css3_text_line_break \
+	WEBKIT_CONFIG+=mathml \
+	WEBKIT_CONFIG+=microdata
 
-ifeq ($(BR2_USE_ACCELERATED_CANVAS), y)
-	QT5WEBKIT_CONFIG+=WEBKIT_CONFIG+=accelerated_2d_canvas
+ifeq ($(BR2_QT5WEBKIT_USE_GSTREAMER),y)
+QT5WEBKIT_DEPENDENCIES += gstreamer1 gst1-plugins-base gst1-plugins-good gst1-plugins-bad
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=video \
+	WEBKIT_CONFIG+=use_gstreamer \
+	WEBKIT_CONFIG+=media_source \
+	WEBKIT_CONFIG+=web_audio
 endif
 
-ifeq ($(BR2_USE_DISCOVERY), y)
-	QT5WEBKIT_CONFIG+=WEBKIT_CONFIG+=discovery
+ifeq ($(BR2_QT5WEBKIT_USE_DXDRM_EME),y)
+QT5WEBKIT_DEPENDENCIES += dxdrm
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=use_dxdrm
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_ENCRYPTED_MEDIA),y)
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=encrypted_media_v2
+endif
+
+ifeq ($(BR2_PACKAGE_LIBSOUP),y)
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=use_soup \
+	WEBKIT_CONFIG+=use_glib
+QT5WEBKIT_DEPENDENCIES+=libsoup
+endif
+
+ifeq ($(BR2_PACKAGE_MINIBROWSER),y)
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=build_minibrowser
+endif
+
+ifeq ($(BR2_PACKAGE_TESTBROWSER),y)
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=build_testbrowser \
+	WEBKIT_CONFIG+=build_qttestsupport
+endif
+
+ifeq ($(BR2_PACKAGE_DUMPRENDERTREE), y)
+QT5WEBKIT_CONFIG += \
+	WEBKIT_CONFIG+=build_drt
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_ACCELERATED_CANVAS),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=accelerated_2d_canvas
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_DISCOVERY),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=discovery
+	QT5WEBKIT_DEPENDENCIES += gupnp avahi
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_LOCATION),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=location
+	QT5WEBKIT_DEPENDENCIES += qt5location
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_WEBINSPECTOR),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=inspector
+else
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG-=inspector
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_SVG),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=svg
+else
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG-=svg
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_ORIENTATION),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=device_orientation \
+		WEBKIT_CONFIG+=orientation_events
+	QT5WEBKIT_DEPENDENCIES += qt5sensors
+endif
+
+ifeq ($(BR2_QT5WEBKIT_USE_WEBRTC),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=media_stream
+	QT5WEBKIT_DEPENDENCIES += libnice
+endif
+
+ifeq ($(BR2_QT5WEBKIT_ENABLE_JS_MEMORY_TRACKING),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=enable_js_memory_tracking
+endif
+
+ifeq ($(BR2_QT5WEBKIT_ENABLE_DUMP_NODE_STATISTICS),y)
+	QT5WEBKIT_CONFIG += \
+		WEBKIT_CONFIG+=dump_node_statistics
 endif
 
 define QT5WEBKIT_CONFIGURE_CMDS
-	(cd $(@D); \
-		$(TARGET_MAKE_ENV) \
+	(mkdir -p $(QT5WEBKIT_BUILDDIR); cd $(QT5WEBKIT_BUILDDIR); \
+		$(QT5WEBKIT_MAKE_ENV) \
 		$(HOST_DIR)/usr/bin/qmake \
-			$(QT5WEBKIT_CONFIG) \
-			$(QT5WEBKIT_GST_CONFIG) \
-			$(QT5WEBKIT_DEBUG_CONFIG) \
-			$(QT5WEBKIT_TOOLS_CONFIG) \
+			$(QT5WEBKIT_CONFIG) ../WebKit.pro \
 	)
 endef
 
 define QT5WEBKIT_BUILD_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)
-endef
-
-define QT5WEBKIT_BUILD_MINIBROWSER
-	(cd $(@D)/Tools/MiniBrowser/qt; \
-		$(TARGET_MAKE_ENV) \
-		$(HOST_DIR)/usr/bin/qmake \
-	)
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/Tools/MiniBrowser/qt
-endef
-
-define QT5WEBKIT_BUILD_TESTBROWSER
-	(cd $(@D)/Tools/QtTestBrowser; \
-		$(TARGET_MAKE_ENV) \
-		$(HOST_DIR)/usr/bin/qmake \
-	)
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/Tools/QtTestBrowser
-endef
-
-define QT5WEBKIT_BUILD_DUMPRENDERTREE
-	(cd $(@D)/Tools/DumpRenderTree/qt; \
-		$(TARGET_MAKE_ENV) \
-		$(HOST_DIR)/usr/bin/qmake ./DumpRenderTree.pro \
-	)
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D)/Tools/DumpRenderTree/qt
+	$(QT5WEBKIT_MAKE_ENV) $(MAKE) -C $(QT5WEBKIT_BUILDDIR)
 endef
 
 define QT5WEBKIT_INSTALL_STAGING_CMDS
-	$(TARGET_MAKE_ENV) $(MAKE) -C $(@D) install
+	$(QT5WEBKIT_MAKE_ENV) $(MAKE) -C $(QT5WEBKIT_BUILDDIR) install
 	$(QT5_LA_PRL_FILES_FIXUP)
 endef
 
@@ -129,7 +205,7 @@ endif
 define QT5WEBKIT_INSTALL_TARGET_CMDS
 	mkdir -p $(TARGET_DIR)/root/.cache
 	cp -dpf $(STAGING_DIR)/usr/lib/libQt5WebKit*.so.* $(TARGET_DIR)/usr/lib
-	cp -dpf $(@D)/bin/* $(TARGET_DIR)/usr/bin/
+	cp -dpf $(QT5WEBKIT_BUILDDIR)/bin/* $(TARGET_DIR)/usr/bin/
 	$(QT5WEBKIT_INSTALL_TARGET_QMLS)
 endef
 
