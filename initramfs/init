@@ -27,7 +27,7 @@ if [ $? = 0 ]; then
 				umount /boot
 	
 				# flash the image to the card
-				dd if=/cache/mmcblk0p1.img of=/dev/mmcblk0p1 bs=1M
+				dd if=/cache/mmcblk0p1.img of=/dev/mmcblk0p1 bs=10M
 	
 				# put the config files back
 				mount -o noatime,rw -t vfat /dev/mmcblk0p1 /boot
@@ -52,7 +52,7 @@ if [ $? = 0 ]; then
 
 				# verify checksum
 				# apply image over filesystem
-				dd if=/cache/mmcblk0p2.img of=/dev/mmcblk0p2 bs=1M
+				dd if=/cache/mmcblk0p2.img of=/dev/mmcblk0p2 bs=100M
 			fi;
 
 			# remove image and checksum

@@ -27,7 +27,7 @@ define VIEW20_BUILD_CMDS
 endef
 
 define VIEW20_INSTALL_TARGET_CMDS
-	$(INSTALL) -D -m 0755 $(@D)/qmlsceneomx $(TARGET_DIR)/usr/bin/view20
+	$(INSTALL) -D -m 0755 $(@D)/piomxtextures_app/piomxtextures_app $(TARGET_DIR)/usr/bin/view20
 endef
 
 define VIEW20_UNINSTALL_TARGET_CMDS
